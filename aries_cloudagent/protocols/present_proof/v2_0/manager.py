@@ -306,6 +306,8 @@ class V20PresManager:
         pres_message.assign_trace_decorator(
             self._profile.settings, pres_ex_record.trace
         )
+        if not pres_ex_record.pres_request.will_confirm:
+            pres_message.assign_please_ack(["OUTCOME"])
 
         # save presentation exchange state
         pres_ex_record.state = V20PresExRecord.STATE_PRESENTATION_SENT
@@ -415,7 +417,9 @@ class V20PresManager:
         async with self._profile.session() as session:
             await pres_ex_record.save(session, reason="verify v2.0 presentation")
 
-        if pres_request_msg.will_confirm:
+        should_ack = True if pres_ex_record.pres._please_ack.on else False
+
+        if pres_request_msg.will_confirm or should_ack:
             await self.send_pres_ack(pres_ex_record, responder)
 
         return pres_ex_record
