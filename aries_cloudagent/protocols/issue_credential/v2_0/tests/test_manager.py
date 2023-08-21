@@ -908,6 +908,7 @@ class TestV20CredManager(AsyncTestCase):
         connection_id = "test_conn_id"
         thread_id = "thread-id"
         comment = "comment"
+        please_ack = ["OUTCOME"]
         attr_values = {
             "legalName": "value",
             "jurisdictionId": "value",
@@ -1000,7 +1001,7 @@ class TestV20CredManager(AsyncTestCase):
                 )
             )
             (ret_cx_rec, ret_cred_issue) = await self.manager.issue_credential(
-                stored_cx_rec, comment=comment
+                stored_cx_rec, comment=comment, please_ack=please_ack
             )
 
             mock_save.assert_called_once()
@@ -1012,6 +1013,7 @@ class TestV20CredManager(AsyncTestCase):
             assert ret_cred_issue.attachment() == INDY_CRED
             assert ret_cx_rec.state == V20CredExRecord.STATE_ISSUED
             assert ret_cred_issue._thread_id == thread_id
+            assert ret_cred_issue._please_ack.on == please_ack
 
     async def test_issue_credential_x_no_formats(self):
         comment = "comment"

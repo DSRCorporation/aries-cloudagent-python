@@ -2,7 +2,7 @@
 
 import logging
 
-from typing import Mapping, Optional, Tuple
+from typing import Mapping, Optional, Tuple, Sequence
 
 from ....connections.models.conn_record import ConnRecord
 from ....core.oob_processor import OobRecord
@@ -468,6 +468,7 @@ class V20CredManager:
         cred_ex_record: V20CredExRecord,
         *,
         comment: str = None,
+        please_ack: Sequence[str] = None,
     ) -> Tuple[V20CredExRecord, V20CredIssue]:
         """
         Issue a credential.
@@ -475,7 +476,7 @@ class V20CredManager:
         Args:
             cred_ex_record: credential exchange record for which to issue credential
             comment: optional human-readable comment pertaining to credential issue
-
+            please_ack: optional acknowledgement about acceptance of credential
         Returns:
             Tuple: (Updated credential exchange record, credential issue message)
 
@@ -524,7 +525,8 @@ class V20CredManager:
             formats=[format for (format, _) in issue_formats],
             credentials_attach=[attach for (_, attach) in issue_formats],
         )
-
+        cred_issue_message.assign_please_ack(please_ack)
+        # TODO: Should be state moved to STATE_DONE if please_ack is None?
         cred_ex_record.state = V20CredExRecord.STATE_ISSUED
         cred_ex_record.cred_issue = cred_issue_message
         async with self._profile.session() as session:

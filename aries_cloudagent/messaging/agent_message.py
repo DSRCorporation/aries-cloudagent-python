@@ -3,7 +3,7 @@
 import uuid
 from collections import OrderedDict
 from re import sub
-from typing import Mapping, Optional, Text, Union
+from typing import Mapping, Optional, Text, Union, Sequence
 
 from marshmallow import (
     EXCLUDE,
@@ -20,6 +20,7 @@ from ..wallet.base import BaseWallet
 from .base_message import BaseMessage, DIDCommVersion
 from .decorators.base import BaseDecoratorSet
 from .decorators.default import DecoratorSet
+from .decorators.please_ack_decorator import PleaseAckDecorator
 from .decorators.service_decorator import ServiceDecorator
 from .decorators.signature_decorator import SignatureDecorator  # TODO deprecated
 from .decorators.thread_decorator import ThreadDecorator
@@ -429,6 +430,42 @@ class AgentMessage(BaseModel, BaseMessage):
         if not self._trace:
             self.add_trace_decorator(target=TRACE_MESSAGE_TARGET, full_thread=True)
         self._trace.append_trace_report(val)
+
+    @property
+    def _please_ack(self) -> PleaseAckDecorator:
+        """
+        Accessor for the message's please_ack decorator.
+
+        Returns:
+            The PleaseAckDecorator for this message
+
+        """
+        return self._decorators.get("please_ack")
+
+    @_please_ack.setter
+    def _please_ack(self, val: Union[PleaseAckDecorator, dict]):
+        """
+        Setter for the message's please_ack decorator.
+
+        Args:
+            val: PleaseAckDecorator or dict to set as the thread
+        """
+        if val is None:
+            self._decorators.pop("please_ack", None)
+        else:
+            self._decorators["please_ack"] = val
+
+    def assign_please_ack(self, on: Sequence[str] = None):
+        """
+        Assign a please_ack.
+
+        Args:
+            on: list of tokens describing circumstances for acknowledgement.
+        """
+        if on:
+            self._please_ack = PleaseAckDecorator(on)
+        else:
+            self._please_ack = None
 
     def serialize(self, msg_format: DIDCommVersion = DIDCommVersion.v1, **kwargs):
         """Return serialized message in format specified."""

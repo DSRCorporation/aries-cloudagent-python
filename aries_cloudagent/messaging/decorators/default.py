@@ -3,6 +3,7 @@
 from .base import BaseDecoratorSet
 
 from .localization_decorator import LocalizationDecorator
+from .please_ack_decorator import PleaseAckDecorator
 from .signature_decorator import SignatureDecorator
 from .thread_decorator import ThreadDecorator
 from .trace_decorator import TraceDecorator
@@ -18,6 +19,7 @@ DEFAULT_MODELS = {
     "timing": TimingDecorator,
     "transport": TransportDecorator,
     "service": ServiceDecorator,
+    "please_ack": PleaseAckDecorator,
 }
 
 

@@ -22,6 +22,7 @@ from ....indy.holder import IndyHolderError
 from ....indy.issuer import IndyIssuerError
 from ....ledger.error import LedgerError
 from ....messaging.decorators.attach_decorator import AttachDecorator
+from ....messaging.decorators.please_ack_decorator import PleaseAckDecoratorSchema
 from ....messaging.models.base import BaseModelError
 from ....messaging.models.openapi import OpenAPISchema
 from ....messaging.valid import (
@@ -408,6 +409,17 @@ class V20CredIssueRequestSchema(OpenAPISchema):
         required=False,
         allow_none=True,
         metadata={"description": "Human-readable comment"},
+    )
+
+    please_ack = fields.Nested(
+        PleaseAckDecoratorSchema,
+        data_key="~please_ack",
+        required=False,
+        allow_none=True,
+        metadata={
+            "description": "Request acknowledgement if credential is accepted and verified",
+            "example": "on: [\"OUTCOME\"]"
+        }
     )
 
 
@@ -1427,6 +1439,7 @@ async def credential_exchange_issue(request: web.BaseRequest):
 
     body = await request.json()
     comment = body.get("comment")
+    please_ack = body.get("~please_ack", {}).get("on") or None
 
     cred_ex_id = request.match_info["cred_ex_id"]
 
@@ -1456,6 +1469,7 @@ async def credential_exchange_issue(request: web.BaseRequest):
         (cred_ex_record, cred_issue_message) = await cred_manager.issue_credential(
             cred_ex_record,
             comment=comment,
+            please_ack=please_ack,
         )
 
         details = await _get_attached_credentials(profile, cred_ex_record)
